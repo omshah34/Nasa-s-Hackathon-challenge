@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>A World Away — Hunting Exoplanets with AI | NASA Space Apps 2025</title>
+  <meta name="description" content="Hackathon project website for NASA Space Apps 2025: A World Away — Hunting for Exoplanets with AI." />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    /* ================== THEME TOKENS ================== */
+    :root{
+      --bg:#050614; --bg2:#0b0d22;
+      --glass:rgba(14,18,48,.45);
+      --text:#e7e9ff; --muted:#a8add6;
+      --brand:#7ae2ff; --accent:#a78bfa;
+      --glow:0 0 30px rgba(122,226,255,.35), 0 0 60px rgba(167,139,250,.2);
+      --radius:20px; --max:1200px; --shadow:0 10px 30px rgba(0,0,0,.35);
+      --border:linear-gradient(180deg, rgba(122,226,255,.35), rgba(167,139,250,.25));
+      --neon-intensity:1;
+      /* Typography scale */
+      --scale-3: clamp(2.5rem, 4.5vw, 3.5rem); /* H1 */
+      --scale-2: clamp(1.8rem, 3vw, 2.2rem);   /* H2 */
+      --scale-1: 1.25rem;                      /* Lead */
+      --body:1rem; --tight:-0.01em;
+    }
+    /* Alternate themes */
+    :root[data-theme="dusk"]{
+      --bg:#0a0a14; --bg2:#121222;
+      --brand:#ffd166; --accent:#ef476f;
+      --border:linear-gradient(180deg, rgba(255,209,102,.35), rgba(239,71,111,.25));
+    }
+    :root[data-theme="nebula"]{
+      --bg:#060b10; --bg2:#08131c;
+      --brand:#66ffe0; --accent:#7bffb4;
+      --border:linear-gradient(180deg, rgba(102,255,224,.35), rgba(123,255,180,.25));
+    }
+
+    /* ================== BASE ================== */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-size:var(--body); color:var(--text);
+      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      line-height:1.6; overflow-x:hidden; font-optical-sizing:auto;
+      background:
+        radial-gradient(1200px 700px at 10% -10%, #12163a 0%, #0b0e25 40%, var(--bg) 70%) fixed,
+        radial-gradient(900px 500px at 90% 110%, #0a0e2a 0%, var(--bg2) 60%, var(--bg) 100%) fixed;
+    }
+    /* Soft grid + film grain */
+    body::before{
+      content:""; position:fixed; inset:0; pointer-events:none; z-index:-2;
+      background-image:
+        linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+      background-size: 60px 60px, 60px 60px;
+    }
+    body::after{
+      content:""; position:fixed; inset:0; pointer-events:none; z-index:-1;
+      background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="n"><feTurbulence baseFrequency=".8" numOctaves="2" seed="2"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity=".05"/></svg>');
+      mix-blend-mode:soft-light;
+    }
+
+    .container{max-width:var(--max); margin-inline:auto; padding:0 20px}
+
+    /* ================== STARS ================== */
+    .stars, .stars:before, .stars:after{
+      position:fixed; inset:0; content:""; z-index:-3;
+      background-repeat:repeat; pointer-events:none; filter: drop-shadow(0 0 1px #fff);
+    }
+    .stars{
+      background-image:
+        radial-gradient(2px 2px at 20px 30px,#fff 40%,transparent 41%),
+        radial-gradient(1px 1px at 50px 80px,#9ad 40%,transparent 41%),
+        radial-gradient(1px 1px at 90px 120px,#def 40%,transparent 41%);
+      background-size: 200px 200px; animation: drift1 160s linear infinite; opacity:.7;
+    }
+    .stars:before{
+      background-image:
+        radial-gradient(2px 2px at 40px 60px,#fff 40%,transparent 41%),
+        radial-gradient(1px 1px at 120px 10px,#cfe 40%,transparent 41%);
+      background-size: 300px 300px; animation: drift2 220s linear infinite; opacity:.5;
+    }
+    .stars:after{
+      background-image:
+        radial-gradient(1px 1px at 30px 90px,#bdf 40%,transparent 41%),
+        radial-gradient(2px 2px at 150px 150px,#fff 40%,transparent 41%);
+      background-size: 260px 260px; animation: drift3 300s linear infinite; opacity:.35;
+    }
+    @keyframes drift1{from{transform:translateY(0)} to{transform:translateY(-1200px)}}
+    @keyframes drift2{from{transform:translateY(0)} to{transform:translateY(-1500px)}}
+    @keyframes drift3{from{transform:translateY(0)} to{transform:translateY(-1800px)}}
+
+    /* ================== HEADER / NAV ================== */
+    header{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter: blur(10px) saturate(1.2);
+      background:linear-gradient(180deg, rgba(7,10,28,.92), rgba(7,10,28,.38));
+      border-bottom:1px solid #1b1f3a;
+    }
+    .nav{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 0;}
+    .brand{display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--text)}
+    .logo{
+      width:36px; height:36px; border-radius:10px;
+      background: conic-gradient(from 210deg at 50% 50%, var(--brand), var(--accent), var(--brand));
+      box-shadow: calc(var(--neon-intensity)*1px) 0 18px rgba(122,226,255,.4), 0 0 28px rgba(167,139,250,.25);
+    }
+    .brand span{font-family:Orbitron, sans-serif; letter-spacing:.5px; font-weight:800; font-size:1rem;}
+    .links a{
+      color:var(--muted); text-decoration:none; font-weight:700; padding:8px 12px; border-radius:10px;
+      transition: transform .2s ease, background .2s ease, color .2s ease;
+    }
+    .links a:hover{ color:var(--text); background:#151a44; transform: translateY(-2px); }
+    .nav-actions{display:flex; align-items:center; gap:10px}
+    .btn{
+      display:inline-flex; align-items:center; gap:10px; border:none; cursor:pointer;
+      padding:10px 14px; border-radius:14px; font-weight:800; text-decoration:none;
+      background: linear-gradient(135deg,#18204a,#1e2a6b);
+      color:var(--text); box-shadow: var(--glow), inset 0 0 0 1px #2b3575;
+      transition: transform .2s ease, box-shadow .2s ease;
+      will-change: transform;
+    }
+    .btn:hover{transform:scale(1.05) translateY(-2px); box-shadow: 0 0 22px rgba(167,139,250,.55), 0 0 30px rgba(122,226,255,.45);}
+    .btn .dot{width:8px;height:8px;border-radius:50%;background:var(--brand);box-shadow:0 0 12px var(--brand)}
+    .btn.border-anim{ position:relative; overflow:hidden; background:#11183d; }
+    .btn.border-anim::after{
+      content:""; position:absolute; inset:0; border-radius:inherit; padding:1px;
+      background:conic-gradient(from var(--a,0deg), var(--brand), var(--accent), var(--brand));
+      -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor; mask-composite:exclude;
+      animation:spinBorder 6s linear infinite;
+    }
+    @keyframes spinBorder{ to{ --a:360deg } }
+    .menu{display:none}
+    @media (max-width:900px){
+      .menu{display:block}
+      .links{display:none}
+      .links.open{display:flex; flex-direction:column; gap:8px; position:absolute; top:60px; right:20px; padding:14px; background:#0f132d; border:1px solid #24306a; border-radius:16px}
+    }
+
+    /* Progress bar */
+    .progress-wrap{position:fixed; top:0; left:0; right:0; height:3px; z-index:60; background:transparent;}
+    .progress{height:100%; width:0%; background: linear-gradient(90deg, var(--brand), var(--accent));
+      box-shadow: 0 0 12px rgba(122,226,255,.6), 0 0 16px rgba(167,139,250,.45);
+      transition: width .1s linear;
+    }
+
+    /* ================== HERO ================== */
+    .hero{position:relative; padding:96px 0 72px; overflow:hidden;}
+    .hero .orb{
+      position:absolute; width:min(900px,75vw); height:min(900px,75vw); border-radius:50%;
+      right:-22vw; top:-20vw; z-index:-1; filter: blur(6px);
+      background:
+        radial-gradient(circle at 30% 30%, rgba(122,226,255,.35), transparent 55%),
+        radial-gradient(circle at 70% 70%, rgba(167,139,250,.25), transparent 50%),
+        radial-gradient(closest-side, rgba(17,24,64,.8), rgba(10,12,25,0));
+      animation: float 12s ease-in-out infinite;
+    }
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(12px)}}
+    .planet-wrap{position:absolute; left:6%; top:10%; width:220px; height:220px; z-index:-1; }
+    .planet{
+      position:relative; width:100%; height:100%; border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, #3754ff 0%, #222d78 40%, #0a0f3b 70%);
+      box-shadow: 0 0 calc(22px*var(--neon-intensity)) rgba(122,226,255,.35);
+      overflow:hidden; animation: spin 24s linear infinite;
+    }
+    .planet:after{
+      content:""; position:absolute; inset:-40%;
+      background:
+        radial-gradient(60% 20% at 50% 30%, rgba(255,255,255,.25), transparent 60%),
+        repeating-linear-gradient(90deg, rgba(122,226,255,.15), rgba(122,226,255,.15) 2px, transparent 2px, transparent 6px);
+      mix-blend-mode: screen;
+      animation: band 12s linear infinite;
+    }
+    @keyframes spin{from{transform:rotate(0)} to{transform:rotate(360deg)}}
+    @keyframes band{0%{transform:translateX(0)} 100%{transform:translateX(-20%)}}
+
+    .eyebrow{
+      font-family:Orbitron, sans-serif; color:var(--brand); letter-spacing:.2em; font-size:.8rem;
+      text-transform:uppercase; opacity:.95; text-shadow: 0 0 calc(10px*var(--neon-intensity)) rgba(122,226,255,.65);
+    }
+    h1{
+      font-family:Orbitron, sans-serif; font-size:var(--scale-3); line-height:1.1; margin:12px 0 16px;
+      background:linear-gradient(90deg,var(--brand),var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent;
+      text-shadow: 0 0 calc(18px*var(--neon-intensity)) rgba(167,139,250,.45); letter-spacing:var(--tight);
+    }
+    .lead{color:#cdd3ff; font-size: var(--scale-1); max-width:800px}
+
+    /* Hero metric chips */
+    .hero-metrics{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px }
+    .chip{
+      padding:6px 10px; border-radius:999px; font-weight:800;
+      background:#0d1236; border:1px solid #2b3575;
+      text-transform:uppercase; letter-spacing:.04em
+    }
+
+    /* ================== GRID & CARDS ================== */
+    .grid{display:grid; gap:18px; grid-template-columns: repeat(12, 1fr);}
+    .hero-cards{margin-top:26px}
+    .hero-cards .card:nth-child(1){grid-column: span 5}
+    .hero-cards .card:nth-child(2){grid-column: span 4}
+    .hero-cards .card:nth-child(3){grid-column: span 3}
+    @media (max-width:900px){ .hero-cards .card{grid-column:1/-1} }
+
+    .card{
+      background: var(--glass); border-radius: var(--radius); padding:18px;
+      box-shadow: var(--shadow), var(--glow);
+      position:relative; border:1px solid rgba(255,255,255,.12);
+      overflow:hidden; transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      will-change: transform;
+    }
+    .card:before{
+      content:""; position:absolute; inset:0; border-radius:inherit; padding:1px; pointer-events:none;
+      background: var(--border);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+    }
+    .card:hover{background: rgba(18,22,58,.55); box-shadow: 0 10px 40px rgba(122,226,255,.12), 0 10px 50px rgba(167,139,250,.12);}
+
+    /* Headings with inline icon */
+    .with-ico{ display:flex; align-items:center; gap:8px }
+    .with-ico svg{ opacity:.9 }
+
+    /* ================== SECTIONS ================== */
+    section{padding:76px 0; position:relative}
+    section .title{display:flex; align-items:center; gap:10px; margin-bottom:18px}
+    .title .tick{width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--accent)}
+    h2{font-family:Orbitron, sans-serif; margin:0; font-size: var(--scale-2)}
+    p{margin:0 0 12px}
+    .muted{color:var(--muted)}
+    .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:10px}
+    .kpi{ padding:16px; border-radius:16px; border:1px solid #252b55; background:#101432aa; text-align:center}
+    .kpi .num{font-family:Orbitron; font-variant-numeric:tabular-nums; font-size:1.6rem}
+    @media (max-width:900px){ .kpis{grid-template-columns:1fr 1fr} }
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid #2b3170; background:#0e1230; color:#cdd3ff; border-radius:999px; font-weight:600; margin:6px 6px 0 0}
+    .stack{display:flex; flex-wrap:wrap}
+
+    /* Numbered titles + underline */
+    .title.numbered { gap:14px; align-items:baseline }
+    .title.numbered .idx{ font-family:Orbitron; font-weight:800; opacity:.7 }
+    .title.numbered h2{ position:relative; padding-bottom:6px }
+    .title.numbered h2::after{
+      content:""; position:absolute; left:0; bottom:-2px; height:3px; width:80px;
+      background:linear-gradient(90deg,var(--brand),var(--accent));
+      box-shadow:0 0 12px rgba(122,226,255,.5);
+    }
+
+    /* Timeline */
+    .timeline{position:relative; margin-top:10px}
+    .timeline:before{content:""; position:absolute; left:18px; top:0; bottom:0; width:2px; background:#2a3166;}
+    .step{position:relative; padding-left:48px; margin:20px 0}
+    .step:before{
+      content:""; position:absolute; left:10px; top:4px; width:18px; height:18px; border-radius:50%;
+      background:linear-gradient(90deg,var(--brand),var(--accent)); box-shadow:var(--glow); animation: pulse 2.4s ease-in-out infinite;
+    }
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+    .step h4{margin:0 0 6px; font-family:Orbitron}
+
+    /* Canvas wrapper + skeleton/empty state */
+    .shot{
+      border-radius:18px; overflow:hidden; border:1px solid #253068; background:#0d1130;
+      aspect-ratio: 16/10; display:flex; align-items:center; justify-content:center; position:relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    .shot canvas{width:100%; height:100%; display:block; opacity:.92}
+    .shot:after{content:""; position:absolute; inset:0; background:radial-gradient(60% 60% at 50% 20%, transparent, rgba(10,12,25,.6))}
+    #plotEmpty{ position:absolute; color:var(--muted); font-weight:700; letter-spacing:.02em; }
+    .skeleton{
+      background: linear-gradient(90deg, #0f1337 25%, #151a44 37%, #0f1337 63%);
+      background-size:400% 100%; animation: shimmer 1.2s infinite linear;
+    }
+    @keyframes shimmer{ 0%{background-position:100% 0} 100%{background-position:-100% 0} }
+
+    footer{border-top:1px solid #1b1f3a; background:#0b0e23aa; padding:28px 0; margin-top:40px}
+
+    /* Reveal */
+    .reveal{opacity:0; transform:translateY(16px) scale(.98); transition: opacity .6s ease, transform .6s ease}
+    .reveal.show{opacity:1; transform:none}
+
+    /* Toggles & selects */
+    .toggle{
+      display:inline-flex; align-items:center; gap:10px; padding:6px 10px; border-radius:999px;
+      background:#0d1236; border:1px solid #2b3575; cursor:pointer; user-select:none;
+      box-shadow: inset 0 0 0 1px #26306b;
+    }
+    .toggle input{appearance:none; width:34px; height:18px; background:#1a2254; border-radius:999px; position:relative; outline:none; cursor:pointer}
+    .toggle input:before{content:""; position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%; background:linear-gradient(90deg,var(--brand),var(--accent)); transition:left .2s ease}
+    .toggle input:checked:before{left:18px}
+    select.btn{appearance:none; background:#101433; border:1px solid #2b3575; padding:.6rem 1rem; border-radius:14px; font-weight:800; color:var(--text)}
+
+    /* ================== PAGE GRID (SIDEBAR + CONTENT) ================== */
+    .page-grid{display:grid; grid-template-columns:240px 1fr; gap:20px}
+    @media (max-width:1000px){ .page-grid{grid-template-columns:1fr} .toc{display:none} }
+    .toc{position:sticky; top:90px; height:max-content}
+    .toc .card{padding:14px}
+    #toc a{color:var(--muted); text-decoration:none; font-weight:800; display:block; padding:8px 10px; border-radius:10px}
+    #toc a.active{color:var(--text); background:#151a44}
+
+    /* ================== CONSTELLATION DIVIDER ================== */
+    .divider{width:100%; display:block; opacity:.7; margin:6px 0}
+
+    /* ================== SPOTLIGHT ON ACTIVE SECTION ================== */
+    section.active{
+      position:relative;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,.25) inset;
+      transition: box-shadow .4s ease;
+    }
+
+    /* ================== CONTAINER QUERIES ================== */
+    #content{ container-type: inline-size }
+    @container (max-width: 700px){
+      .hero-cards .card{ grid-column:1/-1 }
+    }
+
+    /* ================== A11Y: Motion & Contrast ================== */
+    @media (prefers-reduced-motion: reduce){
+      *{ animation:none !important; transition:none !important }
+    }
+    @media (prefers-contrast: more){
+      :root{ --muted:#dfe3ff }
+      a, .btn{ outline:2px solid currentColor }
+    }
+  </style>
+</head>
+<body>
+  <div class="stars"></div>
+  <div class="progress-wrap"><div class="progress" id="progress"></div></div>
+  <div id="cursorGlow"></div> <!-- subtle cursor glow -->
+
+  <header>
+    <div class="container nav">
+      <a class="brand" href="#home" aria-label="Go to top">
+        <div class="logo" aria-hidden="true"></div>
+        <span>A World Away</span>
+      </a>
+      <nav class="links" id="navLinks" aria-label="Primary">
+        <a href="#overview">Overview</a>
+        <a href="#dataset">Data</a>
+        <a href="#approach">Approach</a>
+        <a href="#model">Model</a>
+        <a href="#demo">Demo</a>
+        <a href="#results">Results</a>
+        <a href="#team">Team</a>
+      </nav>
+      <div class="nav-actions">
+        <select id="themeSelect" class="btn" title="Theme">
+          <option value="">Stellar</option>
+          <option value="dusk">Dusk</option>
+          <option value="nebula">Nebula</option>
+        </select>
+        <label class="toggle" title="Neon glow">
+          <span style="font-weight:700">Neon</span>
+          <input type="checkbox" id="neonToggle" checked>
+        </label>
+        <a class="btn border-anim" href="#demo"><span class="dot"></span> Try Demo</a>
+        <button class="btn menu" id="menuBtn" aria-expanded="false" aria-controls="navLinks">Menu</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="home">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="orb"></div>
+      <div class="planet-wrap"><div class="planet"></div></div>
+      <div class="container">
+        <span class="eyebrow">NASA Space Apps Challenge 2025</span>
+        <h1>A World Away: <br/>Hunting for Exoplanets with AI</h1>
+        <p class="lead">We analyze stellar light curves to detect subtle dips caused by transiting exoplanets. Our frontend presents the problem, data pipeline, model insights, and an in-browser demo to visualize candidate transits.</p>
+        <div class="hero-metrics">
+          <div class="chip">Precision ↑</div>
+          <div class="chip">Recall ↑</div>
+          <div class="chip">False Positives ↓</div>
+        </div>
+
+        <div class="grid hero-cards">
+          <div class="card reveal">
+            <h3 class="with-ico">
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2l3 7h7l-5.5 4 2 7-6.5-4.5L5.5 20l2-7L2 9h7z"/></svg>
+              Challenge
+            </h3>
+            <p class="muted">Detect exoplanet signals in noisy, irregular time-series while minimizing false positives from stellar variability and systematics.</p>
+            <div class="kpis" style="margin-top:8px">
+              <div class="kpi"><div class="num">↑ Recall</div><div class="muted">low SNR</div></div>
+              <div class="kpi"><div class="num">↓ FPR</div><div class="muted">veto rules</div></div>
+              <div class="kpi"><div class="num">Realtime</div><div class="muted">browser plots</div></div>
+              <div class="kpi"><div class="num">Explain</div><div class="muted">saliency</div></div>
+            </div>
+          </div>
+          <div class="card reveal">
+            <h3 class="with-ico">
+              <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3a9 9 0 1 1-6.36 2.64L12 12l6.36-6.36A8.96 8.96 0 0 1 12 3z"/></svg>
+              Our Edge
+            </h3>
+            <p class="muted">Hybrid pipeline: physics-aware preprocessing → transit search → AI classifier with uncertainty. Human-readable outputs and interactive plots.</p>
+            <div class="stack"><span class="pill">BLS / TLS</span><span class="pill">1D-CNN</span><span class="pill">Grad Boost</span><span class="pill">Calibrated Prob.</span></div>
+          </div>
+          <div class="card reveal">
+            <h3 class="with-ico">
+              <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M2 12h20M12 2v20"/></svg>
+              Impact
+            </h3>
+            <p class="muted">Faster triage for candidate planets and citizen-science friendly UI to validate transits together.</p>
+            <div class="stack"><span class="pill">Time-Series</span><span class="pill">Denoising</span><span class="pill">Anomaly Detection</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONSTELLATION DIVIDER -->
+    <svg class="divider" viewBox="0 0 1200 80" preserveAspectRatio="none">
+      <defs>
+        <style>
+          .path{fill:none;stroke:var(--brand);stroke-width:2;stroke-dasharray:6 6;animation:dash 10s linear infinite}
+          .node{fill:var(--accent)}
+          @keyframes dash{to{stroke-dashoffset:-200}}
+        </style>
+      </defs>
+      <path class="path" d="M0,40 C200,10 400,70 600,40 800,10 1000,70 1200,40"/>
+      <circle class="node" cx="180" cy="30" r="3"/><circle class="node" cx="600" cy="42" r="3"/><circle class="node" cx="980" cy="28" r="3"/>
+    </svg>
+
+    <!-- PAGE GRID: SIDEBAR + CONTENT -->
+    <div class="container page-grid">
+      <!-- Scrollspy Sidebar -->
+      <aside class="toc" aria-label="On this page">
+        <div class="card" id="toc">
+          <strong style="display:block;margin-bottom:6px">On this page</strong>
+          <nav>
+            <a href="#overview">Overview</a>
+            <a href="#dataset">Data</a>
+            <a href="#approach">Approach</a>
+            <a href="#model">Model</a>
+            <a href="#demo">Demo</a>
+            <a href="#results">Results</a>
+            <a href="#team">Team</a>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT SECTIONS -->
+      <div id="content">
+        <section id="overview">
+          <div class="title numbered"><span class="idx">01</span><h2>Overview</h2></div>
+          <p>When a planet crosses in front of its star, brightness dips periodically. But stellar activity, instrument noise, and gaps make detection hard. We combine transit search with AI to score candidates and present uncertainty.</p>
+          <div class="grid" style="margin-top:12px; gap:14px">
+            <div class="card reveal" style="grid-column: span 6">
+              <h3 class="with-ico">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M4 12h16M4 7h16M4 17h16"/></svg>
+                Objectives
+              </h3>
+              <ul>
+                <li>Preprocess light curves (detrend, normalize, gap-safe resample).</li>
+                <li>Search periodic dips (Box-Least Squares / Transit Least Squares).</li>
+                <li>Classify candidates with a compact 1D-CNN + tabular features.</li>
+                <li>Explain predictions and surface vetting checks.</li>
+              </ul>
+            </div>
+            <div class="card reveal" style="grid-column: span 6">
+              <h3 class="with-ico">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3l7 6-7 12L5 9z"/></svg>
+                Key Outputs
+              </h3>
+              <ul>
+                <li>Period, depth, duration, SNR.</li>
+                <li>Phase-folded curve & model confidence.</li>
+                <li>Quality flags and false-positive vetoes.</li>
+                <li>Downloadable report.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <svg class="divider" viewBox="0 0 1200 80" preserveAspectRatio="none">
+          <path class="path" d="M0,40 C200,10 400,70 600,40 800,10 1000,70 1200,40"/>
+          <circle class="node" cx="240" cy="35" r="3"/><circle class="node" cx="840" cy="45" r="3"/>
+        </svg>
+
+        <section id="dataset">
+          <div class="title numbered"><span class="idx">02</span><h2>Data & Preprocessing</h2></div>
+          <p class="muted">Compatible with public mission data (e.g., Kepler/TESS-style light curves). You can demo with any CSV of <code>time, flux</code>.</p>
+          <div class="grid" style="margin-top:10px; gap:14px">
+            <div class="card reveal" style="grid-column: span 7">
+              <h3 class="with-ico">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M2 7h20v2H2zm0 6h20v2H2z"/></svg>
+                Pipeline
+              </h3>
+              <div class="timeline">
+                <div class="step"><h4>1. Clean</h4><p>Remove NaNs/outliers, interpolate small gaps.</p></div>
+                <div class="step"><h4>2. Detrend</h4><p>High-pass filter or spline to remove stellar variability.</p></div>
+                <div class="step"><h4>3. Search</h4><p>BLS/TLS grid for candidate periods & epochs.</p></div>
+                <div class="step"><h4>4. Features</h4><p>Depth, duration, SNR, odd-even test, secondary eclipse check.</p></div>
+              </div>
+            </div>
+            <div class="card reveal" style="grid-column: span 5">
+              <h3 class="with-ico">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M3 3h18v4H3zM3 10h18v4H3zM3 17h18v4H3z"/></svg>
+                Tech Stack
+              </h3>
+              <div class="stack"><span class="pill">HTML</span><span class="pill">CSS</span><span class="pill">Vanilla JS</span><span class="pill">Canvas</span></div>
+              <div class="sep" style="height:1px;background:#1b1f3a;margin:14px 0"></div>
+              <p>Frontend-only demo draws the raw and smoothed light curve in your browser for quick exploration.</p>
+            </div>
+          </div>
+        </section>
+
+        <svg class="divider" viewBox="0 0 1200 80" preserveAspectRatio="none">
+          <path class="path" d="M0,40 C200,10 400,70 600,40 800,10 1000,70 1200,40"/>
+          <circle class="node" cx="300" cy="38" r="3"/><circle class="node" cx="930" cy="30" r="3"/>
+        </svg>
+
+        <section id="approach">
+          <div class="title numbered"><span class="idx">03</span><h2>Approach</h2></div>
+          <div class="grid" style="gap:14px">
+            <div class="card reveal" style="grid-column: span 6">
+              <h3 class="with-ico">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M3 12h18M12 3v18"/></svg>
+                Model-Agnostic Transit Search
+              </h3>
+              <p>BLS/TLS candidate generation narrows the search space before AI scoring, improving recall on shallow dips.</p>
+              <div class="stack"><span class="pill">Physics-aware</span><span class="pill">Robust</span></div>
+            </div>
+            <div class="card reveal" style="grid-column: span 6">
+              <h3 class="with-ico">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 7v10m-5-5h10"/></svg>
+                Explainability
+              </h3>
+              <p>We display phase-folded curves and simple saliency over time steps, plus veto flags to help users trust results.</p>
+              <div class="stack"><span class="pill">Transparent</span><span class="pill">Vetting-friendly</span></div>
+            </div>
+          </div>
+        </section>
+
+        <svg class="divider" viewBox="0 0 1200 80" preserveAspectRatio="none">
+          <path class="path" d="M0,40 C200,10 400,70 600,40 800,10 1000,70 1200,40"/>
+          <circle class="node" cx="480" cy="44" r="3"/><circle class="node" cx="720" cy="32" r="3"/>
+        </svg>
+
+        <section id="model">
+          <div class="title numbered"><span class="idx">04</span><h2>Model at a Glance</h2></div>
+          <div class="grid" style="gap:14px">
+            <div class="card reveal" style="grid-column: span 7">
+              <h3 class="with-ico">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M4 6h16v4H4zM4 14h10v4H4z"/></svg>
+                Compact 1D-CNN Classifier
+              </h3>
+              <p>Processes normalized segments around candidate events. Outputs calibrated confidence (0–1) and uncertainty band.</p>
+<pre><code>// Pseudocode (concept)
+// x: normalized flux segment
+// y: probability of transit
+Conv1D(16,k=5) → ReLU → MaxPool
+Conv1D(32,k=5) → ReLU → GlobalAvgPool
+Concat(tabular_features)
+Dense(64) → Dropout → Dense(1, sigmoid)</code></pre>
+            </div>
+            <div class="card reveal" style="grid-column: span 5">
+              <h3 class="with-ico">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2z"/></svg>
+                Feature Highlights
+              </h3>
+              <ul>
+                <li>Depth, duration, SNR, transit shape metrics.</li>
+                <li>Odd–even, secondary eclipse, centroid shift checks.</li>
+                <li>Period aliases & harmonics handling.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <svg class="divider" viewBox="0 0 1200 80" preserveAspectRatio="none">
+          <path class="path" d="M0,40 C200,10 400,70 600,40 800,10 1000,70 1200,40"/>
+          <circle class="node" cx="160" cy="36" r="3"/><circle class="node" cx="1040" cy="40" r="3"/>
+        </svg>
+
+        <section id="demo">
+          <div class="title numbered"><span class="idx">05</span><h2>Interactive Demo (Frontend-only)</h2></div>
+          <p class="muted">Upload a CSV with two columns: <strong>time</strong>, <strong>flux</strong>. The browser will plot the light curve and a simple smoothed curve. No data leaves your device.</p>
+          <div class="grid" style="gap:14px; align-items:start">
+            <div class="card reveal" style="grid-column: span 5">
+              <input type="file" id="fileInput" accept=".csv" aria-label="Upload CSV" />
+              <div class="sep" style="height:1px;background:#1b1f3a;margin:14px 0"></div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap">
+                <button class="btn border-anim" id="plotBtn">Plot Light Curve</button>
+                <button class="btn" id="demoBtn" title="Load sample data">Load Demo Data</button>
+                <button class="btn" id="clearBtn">Clear</button>
+              </div>
+              <p class="muted" style="font-size:.95rem; margin-top:10px">Tip: Use a small sample file for speed. The smoothing here is a light moving-average (for illustration only).</p>
+            </div>
+            <div class="shot reveal" style="grid-column: span 7" id="plotWrap">
+              <div id="plotEmpty">Drop a CSV or click Demo</div>
+              <canvas id="plot" aria-label="Light curve plot"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <svg class="divider" viewBox="0 0 1200 80" preserveAspectRatio="none">
+          <path class="path" d="M0,40 C200,10 400,70 600,40 800,10 1000,70 1200,40"/>
+          <circle class="node" cx="600" cy="34" r="3"/>
+        </svg>
+
+        <section id="results">
+          <div class="title numbered"><span class="idx">06</span><h2>Results & Insights</h2></div>
+          <div class="grid" style="gap:14px">
+            <div class="card reveal" style="grid-column: span 6">
+              <h3 class="with-ico">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M3 17h18v2H3zM3 5h2v10H3zM7 9h2v6H7zM11 7h2v8h-2zM15 10h2v5h-2z"/></svg>
+                Benchmarks
+              </h3>
+              <p class="muted">On curated datasets, our pipeline targets higher recall on low-SNR signals with competitive precision after veto rules.</p>
+              <ul>
+                <li>Improved detection on short-duration transits.</li>
+                <li>Lower false positives from stellar variability.</li>
+                <li>Human-interpretable vetting artifacts.</li>
+              </ul>
+            </div>
+            <div class="card reveal" style="grid-column: span 6">
+              <h3 class="with-ico">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 6l-8 6 8 6 8-6z"/></svg>
+                What’s Next
+              </h3>
+              <ul>
+                <li>Richer uncertainty quantification.</li>
+                <li>Active-learning with community feedback.</li>
+                <li>Extended support for more missions.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <svg class="divider" viewBox="0 0 1200 80" preserveAspectRatio="none">
+          <path class="path" d="M0,40 C200,10 400,70 600,40 800,10 1000,70 1200,40"/>
+          <circle class="node" cx="260" cy="44" r="3"/><circle class="node" cx="960" cy="26" r="3"/>
+        </svg>
+
+        <section id="team">
+          <div class="title numbered"><span class="idx">07</span><h2>Team</h2></div>
+          <div class="grid" style="gap:14px">
+            <div class="card reveal" style="grid-column: span 4">
+              <h3 class="with-ico">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4 0-8 2-8 5v3h16v-3c0-3-4-5-8-5z"/></svg>
+                Data
+              </h3>
+              <p class="muted">Cleansing, detrending, feature engineering.</p>
+            </div>
+            <div class="card reveal" style="grid-column: span 4">
+              <h3 class="with-ico">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M5 3h14v4H5zM3 9h18v12H3z"/></svg>
+                Models
+              </h3>
+              <p class="muted">Transit search, 1D-CNN, calibration, veto rules.</p>
+            </div>
+            <div class="card reveal" style="grid-column: span 4">
+              <h3 class="with-ico">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3l9 4v6c0 5-4 9-9 9S3 18 3 13V7z"/></svg>
+                UX
+              </h3>
+              <p class="muted">Interactive plots, accessibility, reports.</p>
+            </div>
+          </div>
+        </section>
+      </div><!-- /content -->
+    </div><!-- /page-grid -->
+
+    <section id="resources">
+      <div class="container">
+        <div class="title numbered"><span class="idx">08</span><h2>Resources</h2></div>
+        <div class="grid" style="gap:14px">
+          <div class="card reveal" style="grid-column: span 12">
+            <h3 class="with-ico">
+              <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M4 4h16v2H4zM4 8h16v2H4zM4 12h16v2H4zM4 16h10v2H4z"/></svg>
+              Disclaimer
+            </h3>
+            <p class="muted">This is a hackathon demo. Methods shown are illustrative and not official NASA tools. Where mission names are referenced, they are for compatibility context only.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="grid" style="gap:14px; align-items:center">
+        <div style="grid-column: span 8">
+          <strong>© 2025 A World Away</strong> · Built for NASA Space Apps Challenge. · Made with ❤️ and curiosity.
+        </div>
+        <div style="grid-column: span 4; text-align:right">
+          <a class="btn" href="#home">Back to top ↑</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* ======= NAV MENU ======= */
+    const menuBtn = document.getElementById('menuBtn');
+    const links = document.getElementById('navLinks');
+    if(menuBtn){
+      menuBtn.addEventListener('click', ()=>{
+        const open = links.classList.toggle('open');
+        menuBtn.setAttribute('aria-expanded', String(open));
+      });
+    }
+
+    /* ======= THEME SWITCH ======= */
+    const themeSelect = document.getElementById('themeSelect');
+    const root = document.documentElement;
+    themeSelect?.addEventListener('change', e=>{
+      const v = e.target.value;
+      if(v){ root.setAttribute('data-theme', v); localStorage.setItem('awa-theme', v); }
+      else { root.removeAttribute('data-theme'); localStorage.removeItem('awa-theme'); }
+    });
+    (function restoreTheme(){
+      const v = localStorage.getItem('awa-theme');
+      if(v){ root.setAttribute('data-theme', v); themeSelect.value=v; }
+    })();
+
+    /* ======= NEON TOGGLE ======= */
+    const neonToggle = document.getElementById('neonToggle');
+    function setNeon(on){ root.style.setProperty('--neon-intensity', on ? 1 : 0); localStorage.setItem('awa-neon', on?'1':'0'); }
+    neonToggle?.addEventListener('change', e=> setNeon(e.target.checked));
+    (function restoreNeon(){
+      const v = localStorage.getItem('awa-neon'); setNeon(v!== '0'); if(neonToggle) neonToggle.checked = v!=='0';
+    })();
+
+    /* ======= SCROLL PROGRESS ======= */
+    const progressEl = document.getElementById('progress');
+    function onScroll(){
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const p = Math.max(0, Math.min(1, scrollTop / (docHeight || 1)));
+      progressEl.style.width = (p*100).toFixed(2) + '%';
+    }
+    window.addEventListener('scroll', onScroll, {passive:true}); onScroll();
+
+    /* ======= REVEAL ON SCROLL ======= */
+    const revealEls = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){ e.target.classList.add('show'); io.unobserve(e.target); }
+      });
+    }, {threshold:.12});
+    revealEls.forEach(el=>io.observe(el));
+
+    /* ======= SCROLLSPY SIDEBAR ======= */
+    const tocLinks = [...document.querySelectorAll('#toc a')];
+    const sections = tocLinks.map(a=>document.querySelector(a.getAttribute('href')));
+    function updateTOC(){
+      let activeIndex = -1;
+      for(let i=0;i<sections.length;i++){
+        const rect = sections[i]?.getBoundingClientRect();
+        if(rect && rect.top <= 140) activeIndex = i;
+      }
+      tocLinks.forEach(a=>a.classList.remove('active'));
+      if(activeIndex>=0) tocLinks[activeIndex].classList.add('active');
+    }
+    window.addEventListener('scroll', updateTOC, {passive:true}); updateTOC();
+
+    /* ======= CURSOR GLOW ======= */
+    const glow=document.getElementById('cursorGlow');
+    window.addEventListener('mousemove',e=>{
+      glow.style.left=e.clientX+'px'; glow.style.top=e.clientY+'px'; glow.style.opacity='.9';
+    });
+    window.addEventListener('mouseleave',()=> glow.style.opacity='0');
+
+    /* ======= SPOTLIGHT ACTIVE SECTION ======= */
+    const secs=[...document.querySelectorAll('main section')];
+    const spotObs=new IntersectionObserver(es=>{
+      es.forEach(x=> x.target.classList.toggle('active', x.isIntersecting && x.intersectionRatio>0.55));
+    },{threshold:[0.55]});
+    secs.forEach(s=>spotObs.observe(s));
+
+    /* ======= MICRO-INTERACTIONS ======= */
+    // Magnetic CTAs
+    document.querySelectorAll('.btn').forEach(btn=>{
+      btn.addEventListener('mousemove', e=>{
+        const r = btn.getBoundingClientRect();
+        const x = e.clientX - (r.left + r.width/2);
+        const y = e.clientY - (r.top + r.height/2);
+        btn.style.transform = `translate(${x*0.05}px, ${y*0.05}px) scale(1.04)`;
+      });
+      btn.addEventListener('mouseleave', ()=> btn.style.transform='');
+    });
+    // Card tilt
+    document.querySelectorAll('.card').forEach(c=>{
+      c.addEventListener('mousemove', e=>{
+        const r=c.getBoundingClientRect();
+        const x=(e.clientX - r.left)/r.width - .5, y=(e.clientY - r.top)/r.height - .5;
+        c.style.transform=`rotateX(${ -y*4 }deg) rotateY(${ x*6 }deg) translateY(-4px)`;
+      });
+      c.addEventListener('mouseleave', ()=> c.style.transform='');
+    });
+
+    /* ======= CSV PARSER + PLOT ======= */
+    function parseCSV(text){
+      // expects two columns: time, flux (header optional)
+      const rows = text.trim().split(/\r?\n/);
+      const data = [];
+      for(let i=0;i<rows.length;i++){
+        const row = rows[i].trim(); if(!row) continue;
+        const [a,b] = row.split(/,|;|\s+/).filter(Boolean);
+        if(i===0 && !Number.isFinite(Number(a))) continue; // skip header
+        const t = Number(a), f = Number(b);
+        if(Number.isFinite(t) && Number.isFinite(f)) data.push({time:t, flux:f});
+      }
+      return data.sort((x,y)=>x.time-y.time);
+    }
+    function smooth(values, w=11){
+      const half = Math.max(1, Math.floor(w/2));
+      const out = new Array(values.length).fill(0);
+      for(let i=0;i<values.length;i++){
+        let s=0, c=0;
+        for(let k=-half; k<=half; k++){
+          const j=i+k; if(j>=0 && j<values.length){ s+=values[j]; c++; }
+        }
+        out[i]= s/c;
+      }
+      return out;
+    }
+    const canvas = document.getElementById('plot');
+    const ctx = canvas.getContext('2d');
+    const plotWrap = document.getElementById('plotWrap');
+    const plotEmpty = document.getElementById('plotEmpty');
+
+    function resizeCanvas(){
+      const parent = canvas.parentElement.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(parent.width * ratio);
+      canvas.height = Math.floor(parent.height * ratio);
+      canvas.style.width = parent.width + 'px';
+      canvas.style.height = parent.height + 'px';
+      ctx.setTransform(ratio,0,0,ratio,0,0);
+    }
+    window.addEventListener('resize', ()=>{ resizeCanvas(); if(currentData.length) draw(currentData); });
+
+    function showLoading(on){
+      plotWrap.classList.toggle('skeleton', on);
+    }
+    function setEmpty(on){
+      plotEmpty.style.display = on ? 'block' : 'none';
+    }
+
+    let currentData = [];
+    function draw(data){
+      resizeCanvas();
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+
+      const pad = 30, w = canvas.clientWidth, h = canvas.clientHeight;
+
+      if(!data.length){
+        setEmpty(true);
+        ctx.fillStyle = '#a6abcf';
+        ctx.font = '14px Inter';
+        ctx.fillText('Upload a CSV with "time,flux" or use Demo Data', 16, 24);
+        return;
+      } else {
+        setEmpty(false);
+      }
+
+      const times = data.map(d=>d.time);
+      const fluxs = data.map(d=>d.flux);
+      const minT = Math.min(...times), maxT = Math.max(...times);
+      const minF = Math.min(...fluxs), maxF = Math.max(...fluxs);
+
+      // axes
+      ctx.strokeStyle = '#2a3166'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, h-pad); ctx.lineTo(w-pad, h-pad); ctx.stroke();
+
+      // scale helpers
+      const sx = t => pad + (w-2*pad) * ((t - minT) / (maxT - minT || 1));
+      const sy = f => (h-pad) - (h-2*pad) * ((f - minF) / (maxF - minF || 1));
+
+      // raw
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--brand').trim() || '#7ae2ff';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(sx(times[0]), sy(fluxs[0]));
+      for(let i=1;i<data.length;i++){ ctx.lineTo(sx(times[i]), sy(fluxs[i])); }
+      ctx.stroke();
+
+      // smoothed
+      const sm = smooth(fluxs, Math.max(5, Math.floor(data.length/100)));
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#a78bfa';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(sx(times[0]), sy(sm[0]));
+      for(let i=1;i<data.length;i++){ ctx.lineTo(sx(times[i]), sy(sm[i])); }
+      ctx.stroke();
+
+      // labels
+      ctx.fillStyle = '#cdd3ff'; ctx.font = '12px Inter';
+      ctx.fillText('time', w/2, h-8);
+      ctx.save(); ctx.translate(12, h/2); ctx.rotate(-Math.PI/2); ctx.fillText('flux', 0, 0); ctx.restore();
+    }
+
+    const fileInput = document.getElementById('fileInput');
+    const plotBtn = document.getElementById('plotBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const demoBtn = document.getElementById('demoBtn');
+
+    // Synthetic demo data
+    const sampleCSV = Array.from({length:400}, (_,i)=>{
+      const t = i*0.02;
+      const phase = (t % 3.2);
+      const transit = (phase>1.55 && phase<1.75) ? -0.006 : 0;
+      const noise = (Math.random()-0.5)*0.002;
+      const f = 1 + transit + noise + 0.0007*Math.sin(t*1.2);
+      return `${t.toFixed(4)},${f.toFixed(6)}`;
+    }).join('\n');
+
+    plotBtn?.addEventListener('click', ()=>{
+      const file = fileInput?.files?.[0];
+      if(!file){ alert('Select a CSV first.'); return; }
+      const reader = new FileReader();
+      showLoading(true);
+      reader.onload = e=>{
+        const text = e.target.result;
+        currentData = parseCSV(text);
+        draw(currentData);
+        setTimeout(()=>showLoading(false), 350);
+      };
+      reader.readAsText(file);
+    });
+
+    demoBtn?.addEventListener('click', ()=>{
+      showLoading(true);
+      currentData = parseCSV(sampleCSV);
+      draw(currentData);
+      window.location.hash = '#demo';
+      setTimeout(()=>showLoading(false), 250);
+    });
+
+    clearBtn?.addEventListener('click', ()=>{
+      currentData = [];
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      setEmpty(true);
+    });
+
+    // Initial canvas state
+    setEmpty(true);
+    draw([]);
+  </script>
+</body>
+</html>
